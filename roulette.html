@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roulette Wheel</title>
+	<script src="confetti.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+
+            /* Base Cream color value */
+            background-color: #FFF4DE; 
+            
+            /* Clean grid lines generated directly via browser syntax rendering */
+            background-image: 
+                linear-gradient(#F2D0B1 1px, transparent 1px), 
+                linear-gradient(90deg, #F2D0B1 1px, transparent 1px); 
+            background-size: 25px 25px; 
+            color: #2c1e11; 
+        }
+
+        h1 { 
+            color: #7c533c; 
+            margin: 0 0 5px 0; 
+            font-size: 2.5rem;
+            letter-spacing: 1px;
+        }
+        
+        .sub-tag {
+            color: #9c806c;
+            font-size: 14px;
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+
+        /* Container holding both the box and the side arrow */
+        .roulette-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .roulette-box {
+            position: relative;
+            width: 160px;
+            height: 100px;
+            background: #ffffff; 
+            border: 4px solid #7c533c; 
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(124, 83, 60, 0.15);
+        }
+
+        /* Indicator arrow styled using #5E463B pointing directly right */
+        .win-indicator-arrow {
+            position: absolute;
+            left: -25px; 
+            top: 50%;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-top: 12px solid transparent;
+            border-bottom: 12px solid transparent;
+            border-left: 18px solid #5E463B; 
+            z-index: 20;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+        }
+
+        .number-strip {
+            position: absolute;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            top: 0;
+            will-change: transform;
+        }
+
+        .slot-number {
+            height: 50px;
+            line-height: 50px;
+            font-size: 32px;
+            font-weight: 800;
+            color: #4a3321; 
+        }
+
+        #spin-btn {
+            padding: 16px 60px;
+            font-size: 20px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #e19e75, #c87a4b);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 6px 15px rgba(200, 122, 75, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.2s ease;
+        }
+
+        #spin-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(200, 122, 75, 0.5);
+        }
+
+        #spin-btn:disabled {
+            background: #dcd1be;
+            color: #9c907c;
+            box-shadow: none;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Credits text label decoration rules under your button layout */
+        .credit-caption {
+            font-size: 13px;
+            color: #9c806c;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            margin-top: 12px;
+            opacity: 0.8;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; 
+            width: 100vw; 
+            height: 100vh;
+            background: rgba(44, 30, 17, 0.7); 
+            justify-content: center; 
+            align-items: center;
+            z-index: 100;
+        }
+
+        .modal-content {
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 24px;
+            text-align: center;
+            border: 3px solid #7c533c;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+            max-width: 90%;
+            width: 400px;
+            animation: emerge 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        #winner-number-text {
+            font-size: 24px; 
+            font-weight: 800; 
+            margin: 10px 0 20px 0;
+            color: #c87a4b;
+        }
+        
+        #winner-image {
+            width: 100%;
+            max-width: 320px;
+            height: 320px;
+            object-fit: cover;
+            border-radius: 16px;
+            border: 4px solid #fff4de;
+            background: #fffdf9;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+        }
+
+        .close-btn {
+            margin-top: 25px;
+            padding: 12px 35px;
+            font-size: 16px;
+            background: #fff4de;
+            color: #7c533c;
+            border: 1px solid #e2d3ba;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.2s;
+        }
+
+        .close-btn:hover {
+            background: #ff4757;
+            color: white;
+            border-color: #ff4757;
+        }
+
+        @keyframes emerge {
+            0% { transform: scale(0.7); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Illustration Roulette</h1>
+    <div class="sub-tag">A little gambling is fun when you're with me...</div>
+
+    <div class="roulette-wrapper">
+        <div class="win-indicator-arrow"></div>
+        <div class="roulette-box">
+            <div id="number-strip" class="number-strip"></div>
+        </div>
+    </div>
+
+    <button id="spin-btn" onclick="spinRoulette()">LET'S GO!</button>
+    
+    <div class="credit-caption">by @zigg87_86 on IG</div>
+
+    <div id="winner-modal" class="modal" onclick="closeModal()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div style="text-transform: uppercase; font-size:12px; letter-spacing:2px; color:#9c806c; font-weight:bold;">YOU'VE GOT A WINNER!</div>
+            <p id="winner-number-text"></p>
+            <img id="winner-image" src="" alt="Winner Image Source">
+            <br>
+            <button class="close-btn" onclick="closeModal()">Go again?</button>
+        </div>
+    </div>
+
+    <script>
+        const TOTAL_PICTURES = 22; 
+        const slotHeight = 50;
+        const strip = document.getElementById('number-strip');
+        const spinBtn = document.getElementById('spin-btn');
+
+        function initRoulette() {
+            strip.innerHTML = '';
+            for (let cycle = 0; cycle < 3; cycle++) {
+                for (let i = 1; i <= TOTAL_PICTURES; i++) {
+                    const el = document.createElement('div');
+                    el.className = 'slot-number';
+                    el.innerText = i;
+                    strip.appendChild(el);
+                }
+            }
+        }
+        initRoulette();
+
+        function spinRoulette() {
+            spinBtn.disabled = true;
+            
+            const winningNumber = Math.floor(Math.random() * TOTAL_PICTURES) + 1;
+
+            const boxCenterOffset = 50;
+            const singleSetHeight = slotHeight * TOTAL_PICTURES;
+            
+            const targetIndexInMiddleSet = TOTAL_PICTURES + (winningNumber - 1);
+            const targetItemCenter = (targetIndexInMiddleSet * slotHeight) + (slotHeight / 2);
+            
+            const finalStopY = boxCenterOffset - targetItemCenter;
+
+            const extraSpinDistance = singleSetHeight * 6; 
+            const startingSpinY = finalStopY + extraSpinDistance; 
+
+            const spinDuration = 4000; 
+            let startTimestamp = null;
+
+            function animate(now) {
+                if (!startTimestamp) startTimestamp = now;
+                const elapsed = now - startTimestamp;
+                const progress = Math.min(elapsed / spinDuration, 1);
+
+                const easeOutQuint = 1 - Math.pow(1 - progress, 5);
+                const currentY = startingSpinY - (easeOutQuint * extraSpinDistance);
+
+                let wrappedY = ((currentY % singleSetHeight) - singleSetHeight) % singleSetHeight;
+                strip.style.transform = `translateY(${wrappedY}px)`;
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    let cleanWrappedY = ((finalStopY % singleSetHeight) - singleSetHeight) % singleSetHeight;
+                    strip.style.transform = `translateY(${cleanWrappedY}px)`;
+                    
+                    displayWinnerAsset(winningNumber);
+                }
+            }
+            requestAnimationFrame(animate);
+        }
+
+        function displayWinnerAsset(num) {
+            const localImagePath = `images/${num}.jpg`;
+
+            
+            document.getElementById('winner-number-text').innerText = `Image Number #${num}`;
+            document.getElementById('winner-image').src = localImagePath;
+            
+            document.getElementById('winner-modal').style.display = 'flex';
+			            confetti({
+                particleCount: 80,
+                angle: 60,
+                spread: 55,
+                origin: { x: 0, y: 0.8 }
+            });
+            confetti({
+                particleCount: 80,
+                angle: 120,
+                spread: 55,
+                origin: { x: 1, y: 0.8 }
+            });
+            spinBtn.disabled = false;
+        }
+
+        function closeModal() {
+            document.getElementById('winner-modal').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
